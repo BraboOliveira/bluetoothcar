@@ -59,7 +59,7 @@ class _DiscoveryPage extends State<DiscoveryPage> {
   @override
   void dispose() {
     // Avoid memory leak (`setState` after dispose) and cancel discovery
-    _streamSubscription?.cancel();
+    _streamSubscription.cancel();
 
     super.dispose();
   }
@@ -69,8 +69,8 @@ class _DiscoveryPage extends State<DiscoveryPage> {
     return Scaffold(
       appBar: AppBar(
         title: isDiscovering
-            ? Text('Discovering devices')
-            : Text('Discovered devices'),
+            ? Text('Descobrindo dispositivos')
+            : Text('Dispositivos descobertos'),
         actions: <Widget>[
           isDiscovering
               ? FittedBox(

@@ -2,8 +2,12 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:bluetoothcar/BackgroundCollectingTask.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
+
+
+BackgroundCollectingTask? _collectingTask;
 
 class ChatPage extends StatefulWidget {
   final BluetoothDevice server;
@@ -40,7 +44,7 @@ class _ChatPage extends State<ChatPage> {
     super.initState();
 
     BluetoothConnection.toAddress(widget.server.address).then((_connection) {
-      print('Connected to the device');
+      print('Conectado ao dispositivo');
       connection = _connection;
       setState(() {
         isConnecting = false;
@@ -55,9 +59,9 @@ class _ChatPage extends State<ChatPage> {
         // If we except the disconnection, `onDone` should be fired as result.
         // If we didn't except this (no flag set), it means closing by remote.
         if (isDisconnecting) {
-          print('Disconnecting locally!');
+          print('Desconectado Localmente!');
         } else {
-          print('Disconnected remotely!');
+          print('Desconectado Remotamente!');
         }
         if (this.mounted) {
           setState(() {});
@@ -110,10 +114,10 @@ class _ChatPage extends State<ChatPage> {
     return Scaffold(
       appBar: AppBar(
           title: (isConnecting
-              ? Text('Connecting chat to ${widget.server.name}...')
+              ? Text('Conectando o bate-papo a ${widget.server.name}...')
               : isConnected()
-                  ? Text('Live chat with ${widget.server.name}')
-                  : Text('Chat log with ${widget.server.name}'))),
+                  ? Text('Receber comandos da ${widget.server.name}')
+                  : Text('Registro ${widget.server.name}'))),
       body: SafeArea(
         child: Column(
           children: <Widget>[
@@ -133,10 +137,10 @@ class _ChatPage extends State<ChatPage> {
                       controller: textEditingController,
                       decoration: InputDecoration.collapsed(
                         hintText: isConnecting
-                            ? 'Wait until connected...'
+                            ? 'Aguarde até conectar...'
                             : isConnected()
-                                ? 'Type your message...'
-                                : 'Chat got disconnected',
+                                ? 'Digite sua mensagem...'
+                                : 'O bate-papo foi desconectado',
                         hintStyle: const TextStyle(color: Colors.grey),
                       ),
                       enabled: isConnected(),
@@ -236,5 +240,34 @@ class _ChatPage extends State<ChatPage> {
 
   bool isConnected() {
     return connection != null && connection.isConnected;
+  }
+
+   Future<void> _startBackgroundTask(
+    BuildContext context,
+    BluetoothDevice server,
+  ) async {
+    try {
+      _collectingTask = await BackgroundCollectingTask.connect(server);
+      await _collectingTask!.start();
+    } catch (ex) {
+      _collectingTask?.cancel();
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Error occured while connecting'),
+            content: Text("${ex.toString()}"),
+            actions: <Widget>[
+              new TextButton(
+                child: new Text("Close"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
   }
 }

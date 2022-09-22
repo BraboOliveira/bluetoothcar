@@ -1,10 +1,13 @@
 import 'dart:async';
-
+import 'package:bluetoothcar/BackgroundCollectingTask.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
-
 import './ChatPage.dart';
 import './DiscoveryPage.dart';
+
+
+BackgroundCollectingTask? _collectingTask;
+
 
 class MainPage extends StatefulWidget {
   @override
@@ -70,15 +73,15 @@ class _MainPage extends State<MainPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Flutter Bluetooth Serial'),
+        title: const Text('Aplicativo Teste'),
       ),
       body: Container(
         child: ListView(
           children: <Widget>[
             Divider(),
-            ListTile(title: const Text('General')),
+            ListTile(title: const Text('Geral')),
             SwitchListTile(
-              title: const Text('Enable Bluetooth'),
+              title: const Text('Ligar Bluetooth'),
               value: _bluetoothState.isEnabled,
               onChanged: (bool value) {
                 // Do the request and update with the true value then
@@ -99,44 +102,51 @@ class _MainPage extends State<MainPage> {
               title: const Text('Bluetooth status'),
               subtitle: Text(_bluetoothState.toString()),
               trailing: ElevatedButton(
-                child: const Text('Settings'),
+                child: const Text('Configurações'),
                 onPressed: () {
                   FlutterBluetoothSerial.instance.openSettings();
                 },
               ),
             ),
             ListTile(
-              title: const Text('Local adapter address'),
+              title: const Text('Endereço Local'),
               subtitle: Text(_address),
             ),
             ListTile(
-              title: const Text('Local adapter name'),
+              title: const Text('Nome Tablet'),
               subtitle: Text(_name),
               onLongPress: null,
             ),
-            Divider(),
+            const Divider(),
             ListTile(
               title: TextButton(
                   child:
-                      const Text('Connect to paired device to chat with ESP32'),
+                      const Text('Pesquisar e Conectar a Placa do Veículo'),
                   onPressed: () async {
                     final BluetoothDevice selectedDevice =
                         await Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (context) {
-                          return DiscoveryPage();
+                          return const DiscoveryPage();
                         },
                       ),
                     );
 
                     if (selectedDevice != null) {
                       print('Discovery -> selected ' + selectedDevice.address);
-                      _startChat(context, selectedDevice);
+                      await _startBackgroundTask(context,selectedDevice);
+                      // _startChat(context, selectedDevice);
                     } else {
                       print('Discovery -> no device selected');
                     }
                   }),
             ),
+            ElevatedButton(
+              onPressed: ()async {
+                await _collectingTask!.cancel();
+              }, 
+              child: const Text('Cancelar')
+              )
           ],
         ),
       ),
@@ -151,5 +161,33 @@ class _MainPage extends State<MainPage> {
         },
       ),
     );
+  }
+  Future<void> _startBackgroundTask(
+    BuildContext context,
+    BluetoothDevice server,
+  ) async {
+    try {
+      _collectingTask = await BackgroundCollectingTask.connect(server);
+      await _collectingTask!.start();
+    } catch (ex) {
+      _collectingTask?.cancel();
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Error occured while connecting'),
+            content: Text("${ex.toString()}"),
+            actions: <Widget>[
+              new TextButton(
+                child: new Text("Close"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
   }
 }
