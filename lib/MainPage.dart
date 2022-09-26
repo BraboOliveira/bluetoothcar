@@ -1,13 +1,14 @@
 import 'dart:async';
 import 'package:bluetoothcar/BackgroundCollectingTask.dart';
+import 'package:bluetoothcar/home_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 import './ChatPage.dart';
 import './DiscoveryPage.dart';
 
-
 BackgroundCollectingTask? _collectingTask;
-
+final controller = HomeController();
 
 class MainPage extends StatefulWidget {
   @override
@@ -120,8 +121,7 @@ class _MainPage extends State<MainPage> {
             const Divider(),
             ListTile(
               title: TextButton(
-                  child:
-                      const Text('Pesquisar e Conectar a Placa do Veículo'),
+                  child: const Text('Pesquisar e Conectar a Placa do Veículo'),
                   onPressed: () async {
                     final BluetoothDevice selectedDevice =
                         await Navigator.of(context).push(
@@ -134,7 +134,7 @@ class _MainPage extends State<MainPage> {
 
                     if (selectedDevice != null) {
                       print('Discovery -> selected ' + selectedDevice.address);
-                      await _startBackgroundTask(context,selectedDevice);
+                      await _startBackgroundTask(context, selectedDevice);
                       // _startChat(context, selectedDevice);
                     } else {
                       print('Discovery -> no device selected');
@@ -142,11 +142,13 @@ class _MainPage extends State<MainPage> {
                   }),
             ),
             ElevatedButton(
-              onPressed: ()async {
-                await _collectingTask!.cancel();
-              }, 
-              child: const Text('Cancelar')
-              )
+                onPressed: () async {
+                  await _collectingTask!.cancel();
+                },
+                child: const Text('Cancelar')),
+            Observer(builder: (_) {
+              return Text(controller.teste.toString());
+            })
           ],
         ),
       ),
@@ -162,6 +164,7 @@ class _MainPage extends State<MainPage> {
       ),
     );
   }
+
   Future<void> _startBackgroundTask(
     BuildContext context,
     BluetoothDevice server,

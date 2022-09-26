@@ -38,6 +38,9 @@ dependencies:
   cupertino_icons: ^1.0.2
   flutter_bluetooth_serial: ^0.4.0
   scoped_model: ^2.0.0
+  flutter_mobx: ^2.0.6+1
+  build_runner: ^2.1.11
+  mobx_codegen:
 
 dev_dependencies:
   flutter_test:

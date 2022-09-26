@@ -1,9 +1,13 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:typed_data';
 
+import 'package:bluetoothcar/home_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 import 'package:scoped_model/scoped_model.dart';
+
+final controller = HomeController();
 
   class _Message {
   int whom;
@@ -67,8 +71,6 @@ class BackgroundCollectingTask extends Model {
     });
     Uint8List buffer = Uint8List(data.length - backspacesCounter);
     int bufferIndex = buffer.length;
-
-    // Apply backspace control character
     backspacesCounter = 0;
     for (int i = data.length - 1; i >= 0; i--) {
       if (data[i] == 8 || data[i] == 127) {
@@ -84,19 +86,17 @@ class BackgroundCollectingTask extends Model {
 
     // Create message if there is new line character
     String dataString = String.fromCharCodes(buffer);
-    int index = buffer.indexOf(13);
+    // print('Dados: $dataString');
+    int index = buffer.indexOf(10);
     if (~index != 0) {
-        messages.add(
-          _Message(
-            1,
+        controller.setErroHorario(
             backspacesCounter > 0
                 ? _messageBuffer.substring(
-                    0, _messageBuffer.length - backspacesCounter)
-                : _messageBuffer + dataString.substring(0, index),
-          ),
+                    0, _messageBuffer.length - backspacesCounter-3)
+                : _messageBuffer + dataString.substring(0, index-4),
         );
         _messageBuffer = dataString.substring(index);
-        print(messages.length-1);
+        print(controller.teste);
     } else {
       _messageBuffer = (backspacesCounter > 0
           ? _messageBuffer.substring(
