@@ -26,7 +26,7 @@ class BluetoothDeviceListEntry extends ListTile {
                           mainAxisSize: MainAxisSize.min,
                           children: <Widget>[
                             Text(rssi.toString()),
-                            Text('dBm'),
+                            // Text('dBm'),
                           ],
                         ),
                       ),

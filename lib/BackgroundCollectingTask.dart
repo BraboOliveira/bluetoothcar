@@ -62,6 +62,7 @@ class BackgroundCollectingTask extends Model {
     });
   }
   void _onDataReceived(Uint8List data) {
+    //  print(data);
     // Allocate buffer for parsed data
     int backspacesCounter = 0;
     data.forEach((byte) {
@@ -86,17 +87,17 @@ class BackgroundCollectingTask extends Model {
 
     // Create message if there is new line character
     String dataString = String.fromCharCodes(buffer);
-    // print('Dados: $dataString');
-    int index = buffer.indexOf(10);
+    int index = buffer.indexOf(13);
     if (~index != 0) {
         controller.setErroHorario(
             backspacesCounter > 0
                 ? _messageBuffer.substring(
                     0, _messageBuffer.length - backspacesCounter-3)
-                : _messageBuffer + dataString.substring(0, index-4),
+                : _messageBuffer + dataString.substring(0, index),
         );
         _messageBuffer = dataString.substring(index);
-        print(controller.teste);
+        final dadosR = jsonDecode(controller.teste!);
+        print(dadosR);
     } else {
       _messageBuffer = (backspacesCounter > 0
           ? _messageBuffer.substring(
