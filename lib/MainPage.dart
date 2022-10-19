@@ -6,6 +6,7 @@ import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import './ChatPage.dart';
 import './DiscoveryPage.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 BackgroundCollectingTask? _collectingTask;
 final controller = HomeController();
@@ -20,10 +21,12 @@ class _MainPage extends State<MainPage> {
 
   String _address = "...";
   String _name = "...";
-
+  Timer? _discoverableTimeoutTimer;
+  int _discoverableTimeoutSecondsLeft = 0;
   @override
   void initState() {
     super.initState();
+    permissao();
 
     // Get current state
     FlutterBluetoothSerial.instance.state.then((state) {
@@ -60,13 +63,36 @@ class _MainPage extends State<MainPage> {
         .listen((BluetoothState state) {
       setState(() {
         _bluetoothState = state;
+
+        _discoverableTimeoutTimer = null;
+        _discoverableTimeoutSecondsLeft = 0;
       });
     });
+  }
+
+  permissao() async {
+  // Request Bluetooth permission from the user
+  Future<bool> enableBluetooth() async {
+    /// Future<void> enableBluetooth() async {
+    // Retrieving the current Bluetooth state
+    final bluetoothState = await FlutterBluetoothSerial.instance.state;
+
+    // If the bluetooth is off, then turn it on first
+    // and then retrieve the devices that are paired.
+    if (bluetoothState == BluetoothState.STATE_OFF) {
+      await FlutterBluetoothSerial.instance.requestEnable();
+      return true;
+    } else {
+    }
+    return false;
+  }
   }
 
   @override
   void dispose() {
     FlutterBluetoothSerial.instance.setPairingRequestHandler(null);
+    _collectingTask?.dispose();
+    _discoverableTimeoutTimer?.cancel();
     super.dispose();
   }
 

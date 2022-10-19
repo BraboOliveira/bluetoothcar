@@ -41,6 +41,7 @@ dependencies:
   flutter_mobx: ^2.0.6+1
   build_runner: ^2.1.11
   mobx_codegen:
+  permission_handler: ^10.0.2
 
 dev_dependencies:
   flutter_test:
